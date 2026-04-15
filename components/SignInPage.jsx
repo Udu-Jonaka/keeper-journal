@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { signInWithPopup, signOut } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
 
 export default function SignInPage() {
   const [error, setError] = useState(null);
+  const router = useRouter();
 
   const handleSignIn = async () => {
     try {
@@ -22,6 +24,9 @@ export default function SignInPage() {
         setError("You do not have access to this journal.");
         return;
       }
+
+      router.push("/");
+      router.refresh();
     } catch (err) {
       console.error(err);
       setError("An error occurred during sign in.");

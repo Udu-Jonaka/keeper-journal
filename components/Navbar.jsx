@@ -5,10 +5,12 @@ import { useState, useEffect } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useAuth } from "@/components/AuthProvider";
+import { useRouter } from "next/navigation";
 
 export default function NavBar() {
   const { user, loading } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const router = useRouter();
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const closeSidebar = () => setIsSidebarOpen(false);
@@ -26,7 +28,8 @@ export default function NavBar() {
   const handleSignOut = async () => {
     closeSidebar();
     await signOut(auth);
-    window.location.href = "/";
+    router.push("/");
+    router.refresh();
   };
 
   return (

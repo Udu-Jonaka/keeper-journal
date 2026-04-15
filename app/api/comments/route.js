@@ -5,7 +5,7 @@ import connectToDatabase from "@/lib/mongodb";
 import Post from "@/models/Post";
 
 export async function POST(request) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const sessionEmail = cookieStore.get("keeper_session")?.value;
 
   const allowedEmails = process.env.NEXT_PUBLIC_ALLOWED_EMAILS

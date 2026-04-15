@@ -27,7 +27,7 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
+      <body suppressHydrationWarning>
         {/* AuthProvider wraps the app so the session is available everywhere */}
         <AuthProvider>
           <Navbar />

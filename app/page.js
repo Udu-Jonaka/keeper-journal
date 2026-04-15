@@ -24,7 +24,7 @@ function getDisplayName(email) {
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const sessionEmail = cookieStore.get("keeper_session")?.value;
 
   const allowedEmails = process.env.NEXT_PUBLIC_ALLOWED_EMAILS

@@ -13,7 +13,8 @@ export async function POST(request) {
     }
 
     // Set the cookie securely
-    cookies().set("keeper_session", email, {
+    const cookieStore = await cookies();
+    cookieStore.set("keeper_session", email, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -31,6 +32,7 @@ export async function POST(request) {
 }
 
 export async function DELETE() {
-  cookies().delete("keeper_session");
+  const cookieStore = await cookies();
+  cookieStore.delete("keeper_session");
   return NextResponse.json({ success: true });
 }

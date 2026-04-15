@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 
@@ -13,17 +13,18 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  if (loading) {
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/");
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
     return (
       <div className="page-container">
         <p className="loading-text">Loading…</p>
       </div>
     );
-  }
-
-  if (!user) {
-    router.replace("/");
-    return null;
   }
 
   async function handleSubmit(e) {
