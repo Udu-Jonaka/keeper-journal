@@ -1,17 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useSession, signIn, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function NavBar() {
-  const { data: session, status } = useSession();
+  const { user, loading } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const closeSidebar = () => setIsSidebarOpen(false);
 
-  // Close sidebar if window is resized past mobile breakpoint
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth > 768 && isSidebarOpen) {
@@ -21,6 +22,12 @@ export default function NavBar() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [isSidebarOpen]);
+
+  const handleSignOut = async () => {
+    closeSidebar();
+    await signOut(auth);
+    window.location.href = "/";
+  };
 
   return (
     <nav className="navbar">
@@ -80,7 +87,7 @@ export default function NavBar() {
           </button>
         </div>
 
-        {status === "authenticated" && (
+        {!loading && user && (
           <ul className="navbar-links">
             <li>
               <Link href="/" onClick={closeSidebar}>
@@ -96,30 +103,16 @@ export default function NavBar() {
         )}
 
         <div className="navbar-right">
-          {status === "authenticated" ? (
-            <>
-              <span className="navbar-user-email">{session.user.email}</span>
-              <button
-                className="btn btn-sign-out"
-                onClick={function () {
-                  closeSidebar();
-                  signOut({ callbackUrl: "/" });
-                }}
-              >
-                Sign out
-              </button>
-            </>
-          ) : (
-            <button
-              className="btn btn-sign-in"
-              onClick={function () {
-                closeSidebar();
-                signIn("google");
-              }}
-            >
-              Sign in
-            </button>
-          )}
+          {!loading ? (
+            user ? (
+              <>
+                <span className="navbar-user-email">{user.email}</span>
+                <button className="btn btn-sign-out" onClick={handleSignOut}>
+                  Sign out
+                </button>
+              </>
+            ) : null
+          ) : null}
         </div>
       </div>
     </nav>

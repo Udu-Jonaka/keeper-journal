@@ -1,20 +1,45 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { useState } from "react";
+import { signInWithPopup, signOut } from "firebase/auth";
+import { auth, googleProvider } from "@/lib/firebase";
 
 export default function SignInPage() {
+  const [error, setError] = useState(null);
+
+  const handleSignIn = async () => {
+    try {
+      setError(null);
+      const result = await signInWithPopup(auth, googleProvider);
+      const email = result.user.email;
+
+      const allowedEmails = process.env.NEXT_PUBLIC_ALLOWED_EMAILS
+        ? process.env.NEXT_PUBLIC_ALLOWED_EMAILS.split(",").map((e) => e.trim())
+        : [];
+
+      if (!allowedEmails.includes(email)) {
+        await signOut(auth);
+        setError("You do not have access to this journal.");
+        return;
+      }
+    } catch (err) {
+      console.error(err);
+      setError("An error occurred during sign in.");
+    }
+  };
+
   return (
     <div className="signin-page">
       <div className="signin-card">
         <div className="signin-logo">Keeper</div>
         <p className="signin-tagline">A private journal for two.</p>
         <hr className="signin-divider" />
-        <button
-          className="btn-google"
-          onClick={function () {
-            signIn("google");
-          }}
-        >
+        {error && (
+          <div className="status-error" style={{ marginBottom: "1rem" }}>
+            {error}
+          </div>
+        )}
+        <button className="btn-google" onClick={handleSignIn}>
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
             <path
               d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908C16.46 14.013 17.64 11.804 17.64 9.2z"

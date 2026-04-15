@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -13,7 +13,7 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  if (status === "loading") {
+  if (loading) {
     return (
       <div className="page-container">
         <p className="loading-text">Loading…</p>
@@ -21,7 +21,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (status === "unauthenticated") {
+  if (!user) {
     router.replace("/");
     return null;
   }
@@ -65,7 +65,7 @@ export default function DashboardPage() {
       <div className="page-header">
         <h1 className="page-title">New Note</h1>
         <p className="page-subtitle">
-          Writing as <strong>{session.user.email}</strong>
+          Writing as <strong>{user.email}</strong>
         </p>
       </div>
 

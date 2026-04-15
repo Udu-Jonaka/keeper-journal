@@ -1,8 +1,8 @@
-import { getServerSession } from "next-auth";
 import connectToDatabase from "@/lib/mongodb";
 import Post from "@/models/Post";
 import CommentForm from "@/components/CommentForm";
 import SignInPage from "@/components/SignInPage";
+import { cookies } from "next/headers";
 
 function formatDate(dateString) {
   if (!dateString) return "Just now"; // Safety fallback
@@ -24,19 +24,20 @@ function getDisplayName(email) {
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const session = await getServerSession();
+  const cookieStore = cookies();
+  const sessionEmail = cookieStore.get("keeper_session")?.value;
 
-  if (!session) {
+  const allowedEmails = process.env.NEXT_PUBLIC_ALLOWED_EMAILS
+    ? process.env.NEXT_PUBLIC_ALLOWED_EMAILS.split(",").map((e) => e.trim())
+    : [];
+
+  if (!sessionEmail || !allowedEmails.includes(sessionEmail)) {
     return <SignInPage />;
   }
 
   await connectToDatabase();
 
-  // 1. Fetch the raw leaned posts
   const rawPosts = await Post.find({}).sort({ createdAt: -1 }).lean();
-
-  // 2. The Silver Bullet Serialization
-  // This safely forces all Mongoose data into pure JSON, preventing Turbopack crashes.
   const posts = JSON.parse(JSON.stringify(rawPosts));
 
   return (
@@ -110,7 +111,6 @@ export default async function HomePage() {
                       })}
                     </div>
                   )}
-                  {/* Safely pass the serialized ID */}
                   <CommentForm postId={post._id} />
                 </div>
               </article>

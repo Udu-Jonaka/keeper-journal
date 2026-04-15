@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { cookies } from "next/headers";
 import mongoose from "mongoose";
 import connectToDatabase from "@/lib/mongodb";
 import Post from "@/models/Post";
 
 export async function POST(request) {
-  const session = await getServerSession();
+  const cookieStore = cookies();
+  const sessionEmail = cookieStore.get("keeper_session")?.value;
 
-  if (!session || !session.user?.email) {
+  const allowedEmails = process.env.NEXT_PUBLIC_ALLOWED_EMAILS
+    ? process.env.NEXT_PUBLIC_ALLOWED_EMAILS.split(",").map((e) => e.trim())
+    : [];
+
+  if (!sessionEmail || !allowedEmails.includes(sessionEmail)) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
@@ -44,7 +49,7 @@ export async function POST(request) {
     }
 
     post.comments.push({
-      authorEmail: session.user.email,
+      authorEmail: sessionEmail,
       text: text.trim(),
     });
 
