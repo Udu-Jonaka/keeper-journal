@@ -27,6 +27,10 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <meta
+        name="google-site-verification"
+        content="QynKCI1qkUU-_GvhYD1Ry6uABbbXQwGqJvK9qcQ2VYg"
+      />
       <body suppressHydrationWarning>
         {/* AuthProvider wraps the app so the session is available everywhere */}
         <AuthProvider>
