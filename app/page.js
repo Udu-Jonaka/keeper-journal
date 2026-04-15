@@ -1,66 +1,123 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import { getServerSession } from "next-auth";
+import connectToDatabase from "@/lib/mongodb";
+import Post from "@/models/Post";
+import CommentForm from "@/components/CommentForm";
+import SignInPage from "@/components/SignInPage";
 
-export default function Home() {
+function formatDate(dateString) {
+  if (!dateString) return "Just now"; // Safety fallback
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function getDisplayName(email) {
+  if (!email) return "Anonymous"; // Safety fallback
+  return email.split("@")[0];
+}
+
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const session = await getServerSession();
+
+  if (!session) {
+    return <SignInPage />;
+  }
+
+  await connectToDatabase();
+
+  // 1. Fetch the raw leaned posts
+  const rawPosts = await Post.find({}).sort({ createdAt: -1 }).lean();
+
+  // 2. The Silver Bullet Serialization
+  // This safely forces all Mongoose data into pure JSON, preventing Turbopack crashes.
+  const posts = JSON.parse(JSON.stringify(rawPosts));
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.js file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="page-container">
+      <div className="page-header">
+        <h1 className="page-title">Our Journal</h1>
+        <p className="page-subtitle">A space to share our thoughts.</p>
+      </div>
+
+      {posts.length === 0 ? (
+        <div className="empty-state">
+          <span className="empty-state-icon">✦</span>
+          <h2 className="empty-state-title">Nothing here yet</h2>
+          <p className="empty-state-body">
+            Be the first to write an entry in the journal.
           </p>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      ) : (
+        <div>
+          {posts.map(function (post) {
+            return (
+              <article key={post._id} className="post-card">
+                <div className="post-card-header">
+                  <h2 className="post-card-title">{post.title}</h2>
+                  <div className="post-card-meta">
+                    <span className="post-card-author">
+                      {getDisplayName(post.authorEmail)}
+                    </span>
+                    <span className="post-card-date">
+                      {formatDate(post.createdAt)}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="post-card-content">{post.content}</p>
+
+                <hr className="post-card-divider" />
+
+                <div className="comments-section">
+                  <p className="comments-title">
+                    {post.comments?.length === 0 || !post.comments
+                      ? "Comments"
+                      : `${post.comments.length} Comment${
+                          post.comments.length === 1 ? "" : "s"
+                        }`}
+                  </p>
+
+                  {post.comments?.length === 0 || !post.comments ? (
+                    <p className="no-comments">
+                      No comments yet. Be the first to respond.
+                    </p>
+                  ) : (
+                    <div className="comments-list">
+                      {post.comments.map(function (comment, index) {
+                        return (
+                          <div
+                            key={comment._id || index}
+                            className="comment-item"
+                          >
+                            <div className="comment-header">
+                              <span className="comment-author">
+                                {getDisplayName(comment.authorEmail)}
+                              </span>
+                              <span className="comment-date">
+                                {formatDate(comment.createdAt)}
+                              </span>
+                            </div>
+                            <p className="comment-text">{comment.text}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {/* Safely pass the serialized ID */}
+                  <CommentForm postId={post._id} />
+                </div>
+              </article>
+            );
+          })}
         </div>
-      </main>
+      )}
     </div>
   );
 }
