@@ -515,11 +515,10 @@ body {
 }
 
 .signin-note {
-  font-size: 0.78rem;
+  font-size: 1.2rem;
   color: var(--color-text-light);
   font-weight: 300;
   margin-top: 1.5rem;
-  font-style: italic;
 }
 
 /* ─── FEED EMPTY STATE ─── */

@@ -65,9 +65,7 @@ export default function SignInPage() {
           </svg>
           Continue with Google
         </button>
-        <p className="signin-note">
-          Access is restricted to invited members only.
-        </p>
+        <p className="signin-note">🤍.</p>
       </div>
     </div>
   );
