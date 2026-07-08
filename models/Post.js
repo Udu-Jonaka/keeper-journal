@@ -33,6 +33,10 @@ const PostSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    imageUrl: {
+      type: String,
+      default: "",
+    },
     comments: [CommentSchema],
   },
   { timestamps: true },

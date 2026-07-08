@@ -25,7 +25,7 @@ export async function POST(request) {
     );
   }
 
-  const { title, content } = body;
+  const { title, content, imageUrl } = body;
 
   if (!title || typeof title !== "string" || !title.trim()) {
     return NextResponse.json(
@@ -43,11 +43,17 @@ export async function POST(request) {
   try {
     await connectToDatabase();
 
-    const post = await Post.create({
+    const postData = {
       title: title.trim(),
       content: content.trim(),
       authorEmail: sessionEmail,
-    });
+    };
+
+    if (imageUrl && typeof imageUrl === "string") {
+      postData.imageUrl = imageUrl;
+    }
+
+    const post = await Post.create(postData);
 
     return NextResponse.json({ post }, { status: 201 });
   } catch (err) {

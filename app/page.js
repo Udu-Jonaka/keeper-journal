@@ -72,6 +72,17 @@ export default async function HomePage() {
                   </div>
                 </div>
 
+                {post.imageUrl && (
+                  <div className="post-card-image-wrapper">
+                    <img
+                      src={post.imageUrl}
+                      alt={post.title}
+                      className="post-card-image"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+
                 <p className="post-card-content">{post.content}</p>
 
                 <hr className="post-card-divider" />
